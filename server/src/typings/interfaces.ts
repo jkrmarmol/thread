@@ -28,10 +28,15 @@ export interface AuthenticatedRequest extends Request {
   user: any;
 }
 
-// declare module "jsonwebtoken" {
-//   export interface JwtPayload {
-//     user: {
-//       code?: string;
-//     };
-//   }
+declare module "jsonwebtoken" {
+  export interface JwtPayload {
+    user: {
+      code?: string;
+      id?: string;
+    };
+  }
+}
+
+// export interface JwtPayload {
+//   id: string,
 // }

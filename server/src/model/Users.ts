@@ -1,4 +1,4 @@
-import { Model, DataTypes, UUIDV1, UUIDV4 } from 'sequelize';
+import { Model, DataTypes, UUIDV4 } from 'sequelize';
 import { genSaltSync, hashSync } from 'bcrypt';
 import sequelize from './config';
 
@@ -9,7 +9,8 @@ class Users extends Model {
   public email!: string;
   public password!: string;
   public role!: 'user' | 'admin';
-  public verified!: boolean;
+  public emailVerified!: boolean;
+  public accountVerified!: boolean;
 }
 
 Users.init({

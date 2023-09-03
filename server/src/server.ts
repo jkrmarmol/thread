@@ -4,6 +4,8 @@ import { config } from 'dotenv';
 import morgan from 'morgan';
 import sequelize from './model/config';
 import usersAuthRouters from './routers/usersAuthRouters';
+import profileRouters from './routers/profileRouters';
+import postRouters from './routers/postRouters';
 import type { CustomErrorHandling } from './typings/interfaces';
 
 
@@ -18,6 +20,8 @@ if (environment === 'development') {
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json())
 app.use('/api/auth', usersAuthRouters);
+app.use('/api/users', profileRouters)
+app.use('/api/post', postRouters)
 
 
 // Error Handling
@@ -37,3 +41,5 @@ sequelize.sync().then(() => {
     console.log(`Server is now listening on port ${PORT}`)
   })
 })
+
+export default app;

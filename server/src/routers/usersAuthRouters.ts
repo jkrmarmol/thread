@@ -1,10 +1,11 @@
 import express, { Request, Response, NextFunction } from "express";
 import { check, validationResult } from 'express-validator';
-import Users from "../model/Users";
-import { sign } from 'jsonwebtoken';
-import { sendOtp, authenticateToken } from "../utils";
-import type { AuthenticatedRequest } from "../typings/interfaces";
 import { compare } from 'bcrypt'
+import { sign } from 'jsonwebtoken';
+import Users from "../model/Users";
+import { sendOtp, authenticateToken } from "../utils";
+import UserInfo from "../model/UserInfo";
+import type { AuthenticatedRequest } from "../typings/interfaces";
 
 
 const usersAuthRouters = express.Router();
@@ -28,10 +29,8 @@ usersAuthRouters.post('/register', [
     if (checkEmailExist === 1) {
       return res.status(400).json({ message: 'Email is already in use. Please choose a different email.' });
     }
-    const response = await Users.create({
-      email,
-      password
-    })
+    const response = await Users.create({ email, password })
+    const createUserInfo = await UserInfo.create({ userId: response.id })
     const otp = await sendOtp(email);
     return res.json({
       message: 'User successfully registered! An OTP has been sent to your email.',
