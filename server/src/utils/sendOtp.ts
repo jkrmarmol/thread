@@ -19,19 +19,28 @@ export default async function (email: string): Promise<{ status: number; token: 
     const option = {
       from: 'Thread <jkrmarmol@gmail.com>',
       to: email,
-      subject: 'OTP | Thread',
+      subject: 'Account Verification - One-Time Password (OTP) Required | Thread',
       html: `<div>
               Dear ${email},
               <br>
               <br>
+              Thank you for registering an account with [Your Website/App Name]. We're excited to have you as a part of our community!
+              To ensure the security of your account and verify that this email address belongs to you, we need you to complete the 
+              registration process by entering the One-Time Password (OTP) provided below on our website.
               <br>
-              ${otpCode}
+              <b>OTP:${otpCode}</b>
               <br>
+              Once you've successfully entered the OTP, your email address will be verified, and your registration will be complete.
+              <br>
+              If you did not request this registration or are unsure why you received this email, please disregard it. Your account will not be activated until you verify your email.
+              <br>
+              Please keep your OTP confidential and do not share it with anyone. It's a critical component of your account's security.
               <br>
               Best regards,
               <br>
               <br>
               Kurt Russelle Marmol
+              <i>Founder of Kuma Technologies</i>
             </div >
       `,
       headers: {

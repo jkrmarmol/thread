@@ -6,6 +6,8 @@ import Post from '../model/Post';
 import PostReaction from '../model/PostReaction';
 import PostComment from '../model/PostComment';
 import CommentReply from '../model/CommentReply';
+import CommentReplyReaction from '../model/CommentReplyReaction';
+import PostCommentReaction from '../model/PostCommentReaction';
 
 
 const postRouters = express.Router();
@@ -250,6 +252,47 @@ postRouters.delete('/:id/comment', [
 })
 // End Post Comment
 
+// Start Comment Reaction
+postRouters.post('/:postId/comment/reaction', [
+  param('postId')
+    .isUUID(4)
+    .withMessage('Invalid UUIDv4 format for id'),
+  check('commentId')
+    .isUUID(4)
+    .withMessage('Invalid UUIDv4 format for id'),
+], authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ error: errors.array() });
+    }
+    const { commentId } = req.body;
+    const { postId } = req.params;
+    const userId = (req as AuthenticatedRequest).user.id;
+    const checkPostIdExist = await Post.count({ where: { id: postId } })
+    if (!checkPostIdExist) {
+      return res.status(404).json({ message: 'Post not found. The requested post does not exist in the system.' });
+    }
+    const checkCommentIdExist = await PostComment.count({ where: { id: commentId } })
+    if (!checkCommentIdExist) {
+      return res.status(404).json({ message: 'Comment not found. The requested comment does not exist in this post.' });
+    }
+    const checkIfUserAlreadyReacted = await PostCommentReaction.count({ where: { postCommentId: commentId, userId } })
+    if (checkIfUserAlreadyReacted) {
+      await PostCommentReaction.destroy({ where: { postCommentId: commentId, userId } })
+      return res.status(200).json({ message: 'Your reaction to the comment has been removed successfully.' });
+    }
+    await PostCommentReaction.create({ postCommentId: commentId, userId })
+    return res.status(200).json({ message: 'Your reaction to the comment has been recorded successfully.' });
+  } catch (err) {
+    if (err instanceof Error) {
+      console.log(err)
+      next(new Error(err.message))
+    }
+  }
+})
+// End Comment Reaction
+
 // Start Comment Reply
 postRouters.post('/:postId/comment/:commentId/reply', [
   param('postId')
@@ -264,6 +307,10 @@ postRouters.post('/:postId/comment/:commentId/reply', [
     .escape()
 ], authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ error: errors.array() });
+    }
     const { postId, commentId } = req.params;
     const { comment } = req.body;
     const userId = (req as AuthenticatedRequest).user.id;
@@ -288,6 +335,141 @@ postRouters.post('/:postId/comment/:commentId/reply', [
     }
   }
 });
+
+postRouters.put('/:postId/comment/:commentId/reply', [
+  param('postId')
+    .isUUID(4)
+    .withMessage('Invalid UUIDv4 format for id'),
+  param('commentId')
+    .isUUID(4)
+    .withMessage('Invalid UUIDv4 format for id')
+], authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { postId, commentId } = req.params;
+    const { replyId, comment } = req.body;
+    const userId = (req as AuthenticatedRequest).user.id;
+    const checkPostIdExist = await Post.count({ where: { id: postId } })
+    if (!checkPostIdExist) {
+      return res.status(404).json({ message: 'Post not found. The requested post does not exist in the system.' });
+    }
+    const checkCommentOnPostIsExist = await PostComment.count({ where: { id: commentId } })
+    if (!checkCommentOnPostIsExist) {
+      return res.status(404).json({ message: 'Comment not found. The requested comment does not exist in this post.' })
+    }
+    const checkCommentReplyIsExist = await CommentReply.count({ where: { id: replyId } })
+    if (!checkCommentReplyIsExist) {
+      return res.status(404).json({ message: 'Reply not found. The requested reply does not exist in this comment.' })
+    }
+    const response = await CommentReply.update({ comment }, {
+      where: {
+        id: replyId,
+        postCommentId: commentId,
+        userId
+      }
+    })
+    return res.status(200).json({ message: 'Your reply to the comment has been successfully updated.' })
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error(err);
+      next(new Error(err.message))
+    }
+  }
+});
+
+postRouters.delete('/:postId/comment/:commentId/reply', [
+  param('postId')
+    .isUUID(4)
+    .withMessage('Invalid UUIDv4 format for id'),
+  param('commentId')
+    .isUUID(4)
+    .withMessage('Invalid UUIDv4 format for id'),
+  check('replyId')
+    .isUUID(4)
+    .withMessage('Invalid UUIDv4 format for id'),
+], authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ error: errors.array() });
+    }
+    const { postId, commentId } = req.params;
+    const { replyId } = req.body;
+    const userId = (req as AuthenticatedRequest).user.id;
+    const checkPostIdExist = await Post.count({ where: { id: postId } })
+    if (!checkPostIdExist) {
+      return res.status(404).json({ message: 'Post not found. The requested post does not exist in the system.' });
+    }
+    const checkCommentOnPostIsExist = await PostComment.count({ where: { id: commentId } })
+    if (!checkCommentOnPostIsExist) {
+      return res.status(404).json({ message: 'Comment not found. The requested comment does not exist in this post.' })
+    }
+    const checkCommentReplyIsExist = await CommentReply.count({ where: { id: replyId } })
+    if (!checkCommentReplyIsExist) {
+      return res.status(404).json({ message: 'Reply not found. The requested reply does not exist in this comment.' })
+    }
+    const response = await CommentReply.destroy({
+      where: {
+        id: replyId,
+        postCommentId: commentId,
+        userId
+      }
+    })
+    return res.status(204).json({ message: 'Your reply to the comment has been successfully deleted.' })
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error(err);
+      next(new Error(err.message))
+    }
+  }
+});
 // End Comment Reply
+
+// Start Reply Reaction
+postRouters.post('/:postId/comment/:commentId/reply/reaction', [
+  param('postId')
+    .isUUID(4)
+    .withMessage('Invalid UUIDv4 format for id'),
+  param('commentId')
+    .isUUID(4)
+    .withMessage('Invalid UUIDv4 format for id'),
+  check('replyId')
+    .isUUID(4)
+    .withMessage('Invalid UUIDv4 format for id'),
+], authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ error: errors.array() });
+    }
+    const { postId, commentId } = req.params;
+    const { replyId } = req.body;
+    const userId = (req as AuthenticatedRequest).user.id;
+    const checkPostIdExist = await Post.count({ where: { id: postId } })
+    if (!checkPostIdExist) {
+      return res.status(404).json({ message: 'Post not found. The requested post does not exist in the system.' });
+    }
+    const checkCommentOnPostIsExist = await PostComment.count({ where: { id: commentId } })
+    if (!checkCommentOnPostIsExist) {
+      return res.status(404).json({ message: 'Comment not found. The requested comment does not exist in this post.' })
+    }
+    const checkCommentReplyIsExist = await CommentReply.count({ where: { id: replyId } })
+    if (!checkCommentReplyIsExist) {
+      return res.status(404).json({ message: 'Reply not found. The requested reply does not exist in this comment.' })
+    }
+    const checkIfUserAlreadyReactedOnPost = await CommentReplyReaction.count({ where: { commentReplyId: replyId, userId } })
+    if (checkIfUserAlreadyReactedOnPost) {
+      await CommentReplyReaction.destroy({ where: { commentReplyId: replyId, userId } })
+      return res.status(200).json({ message: 'Your reaction from the reply has been removed successfully.' })
+    }
+    await CommentReplyReaction.create({ commentReplyId: replyId, userId })
+    return res.status(200).json({ message: 'Your reaction to the reply has been recorded successfully.' })
+  } catch (err) {
+    if (err instanceof Error) {
+      console.log(err)
+      next(new Error(err.message))
+    }
+  }
+});
+// End Reply Reaction
 
 export default postRouters;

@@ -6,6 +6,7 @@ import sequelize from './model/config';
 import usersAuthRouters from './routers/usersAuthRouters';
 import profileRouters from './routers/profileRouters';
 import postRouters from './routers/postRouters';
+import friendRouters from './routers/friendRouters';
 import type { CustomErrorHandling } from './typings/interfaces';
 
 
@@ -22,6 +23,7 @@ app.use(express.json())
 app.use('/api/auth', usersAuthRouters);
 app.use('/api/users', profileRouters)
 app.use('/api/post', postRouters)
+app.use('/api/friend', friendRouters)
 
 
 // Error Handling
