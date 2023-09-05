@@ -15,7 +15,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const environment = process.env.ENVIRONMENT;
 if (environment === 'development') {
-  app.use(morgan('dev'))
+  // app.use(morgan('dev'))
 }
 
 app.use(express.urlencoded({ extended: false }));

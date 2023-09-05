@@ -27,10 +27,10 @@ export default describe('Post Router', async () => {
   })
 
   after(async () => {
-    const getId = await Users.findOne({ where: { email: 'test@gmail.com' } })
-    // await Post.destroy({ where: { userId: getId?.id } })
-    await UserInfo.destroy({ where: { userId: getId?.id } })
-    await Users.destroy({ where: { id: getId?.id } })
+    // const getId = await Users.findOne({ where: { email: 'test@gmail.com' } })
+    // // await Post.destroy({ where: { userId: getId?.id } })
+    // await UserInfo.destroy({ where: { userId: getId?.id } })
+    // await Users.destroy({ where: { id: getId?.id } })
   })
 
   describe('POST /api/post', async () => {

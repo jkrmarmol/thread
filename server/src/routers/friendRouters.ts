@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { param, check, validationResult } from 'express-validator'
+import { param, validationResult } from 'express-validator'
 import { authenticateToken } from '../utils';
 import Friend from '../model/Friend';
 import { AuthenticatedRequest } from '../typings/interfaces';
